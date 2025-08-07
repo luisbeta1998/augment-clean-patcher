@@ -2,6 +2,33 @@
 
 基于 [aug_cleaner](https://github.com/gmh5225/aug_cleaner) 工具的 VS Code Augment 插件自动打包仓库。
 
+## 为什么选择这个版本的插件？
+
+本项目基于 **aug_cleaner** 构建，这是一个有实际案例及高度**隐私保护**的专业版本，相比其他简单的修改方案具有显著优势：
+
+### 技术特性
+- **阻止所有遥测**：拦截 `report-*` 和 `record-*` 等所有跟踪 API 调用
+- **会话匿名化**：为每个 API 调用生成随机会话 ID，防止行为关联
+- **用户代理隐藏**：移除系统指纹数据，防止设备识别
+- **零数据泄露**：确保没有任何遥测数据离开您的机器
+
+### 三重保护
+
+1. **遥测阻断**
+   - 拦截所有跟踪 API 调用
+   - 返回成功响应以维持功能
+   - 零数据离开您的机器
+
+2. **会话随机化**
+   - 为每个 API 调用生成唯一会话 ID
+   - 防止跨会话行为关联
+   - 使用户跟踪变得不可能
+
+3. **用户代理隐藏**
+   - 移除系统指纹数据
+   - 防止设备识别
+   - 保持完全匿名
+
 ## 功能特性
 
 - 🤖 **自动化构建**: 每日自动检查 Augment Code 插件的新版本
@@ -75,6 +102,9 @@
 
 ### 常见问题
 
+**Q: 工作流失败，提示 "End-of-central-directory signature not found"**
+A: 这是 VSIX 下载问题。最新版本已改进下载逻辑，包含重试和验证机制。
+
 **Q: 工作流失败，提示找不到 extension.js**
 A: 这可能是因为插件结构发生变化。工作流会自动查找 `*/out/extension.js` 文件。
 
@@ -83,6 +113,14 @@ A: 删除对应的 Git 标签和 Release，工作流会自动重新构建。
 
 **Q: 如何查看构建日志？**
 A: 进入 Actions 页面，点击对应的工作流运行记录查看详细日志。
+
+### 详细故障排除
+
+查看 [TROUBLESHOOTING.md](TROUBLESHOOTING.md) 获取详细的故障排除指南，包括：
+- VSIX 下载和解包问题
+- 网络连接问题
+- Python 版本问题
+- 调试技巧
 
 ## 贡献
 
@@ -95,4 +133,4 @@ A: 进入 Actions 页面，点击对应的工作流运行记录查看详细日�
 ## 相关项目
 
 - [aug_cleaner](https://github.com/gmh5225/aug_cleaner) - Python 补丁工具
-- [Augment Code](https://marketplace.visualstudio.com/items?itemName=augmentcode.augment) - 原始插件
+- [Augment Code](https://marketplace.visualstudio.com/items?itemName=augment.vscode-augment) - 原始插件
