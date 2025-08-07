@@ -27,15 +27,32 @@ set PUBLISHER=augmentcode
 set EXTENSION_NAME=augment
 set VSIX_URL=https://marketplace.visualstudio.com/_apis/public/gallery/publishers/%PUBLISHER%/vsextensions/%EXTENSION_NAME%/latest/vspackage
 
-curl -L --compressed -o original.vsix "%VSIX_URL%"
+echo 🌐 下载地址: %VSIX_URL%
+
+REM 使用改进的下载参数
+curl -L --fail --retry 3 --retry-delay 5 --max-time 300 --user-agent "Mozilla/5.0 (compatible; Local-Test)" --header "Accept: application/octet-stream, */*" --output original.vsix "%VSIX_URL%"
 if errorlevel 1 (
     echo ❌ 错误: 下载 VSIX 失败
     goto cleanup
 )
 echo ✅ VSIX 下载完成
 
+REM 验证文件
+echo 📋 文件信息:
+dir original.vsix
+file original.vsix 2>nul || echo 文件类型检查工具未找到
+
 REM 3. 解包 VSIX
 echo 📂 解包 VSIX 文件...
+
+REM 测试 ZIP 文件完整性
+powershell -Command "try { Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::OpenRead('original.vsix').Dispose(); Write-Host 'ZIP file is valid' } catch { Write-Host 'Error: Invalid ZIP file'; exit 1 }"
+if errorlevel 1 (
+    echo ❌ 错误: VSIX 文件损坏或不是有效的 ZIP 文件
+    for %%f in (original.vsix) do echo 文件大小: %%~zf bytes
+    goto cleanup
+)
+
 powershell -Command "Expand-Archive -Path 'original.vsix' -DestinationPath 'unpacked_ext' -Force"
 if errorlevel 1 (
     echo ❌ 错误: 解包 VSIX 失败

@@ -30,11 +30,50 @@ PUBLISHER="augmentcode"
 EXTENSION_NAME="augment"
 VSIX_URL="https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${PUBLISHER}/vsextensions/${EXTENSION_NAME}/latest/vspackage"
 
-curl -L --compressed -o original.vsix "${VSIX_URL}"
+echo "🌐 下载地址: ${VSIX_URL}"
+
+# 使用改进的下载参数
+curl -L \
+  --fail \
+  --retry 3 \
+  --retry-delay 5 \
+  --max-time 300 \
+  --user-agent "Mozilla/5.0 (compatible; Local-Test)" \
+  --header "Accept: application/octet-stream, */*" \
+  --output original.vsix \
+  "${VSIX_URL}"
+
+if [ $? -ne 0 ]; then
+    echo "❌ 错误: VSIX 下载失败"
+    exit 1
+fi
+
 echo "✅ VSIX 下载完成"
+
+# 验证文件
+echo "📋 文件信息:"
+ls -la original.vsix
+file original.vsix
+
+# 检查是否为有效的 ZIP 文件
+if ! file original.vsix | grep -q "Zip\|ZIP"; then
+    echo "❌ 错误: 下载的文件不是有效的 ZIP/VSIX 文件"
+    echo "文件内容预览:"
+    head -20 original.vsix
+    exit 1
+fi
 
 # 3. 解包 VSIX
 echo "📂 解包 VSIX 文件..."
+
+# 测试 ZIP 文件完整性
+if ! unzip -t original.vsix > /dev/null 2>&1; then
+    echo "❌ 错误: VSIX 文件损坏或不是有效的 ZIP 文件"
+    echo "文件大小: $(stat -f%z original.vsix 2>/dev/null || stat -c%s original.vsix) bytes"
+    echo "文件类型: $(file original.vsix)"
+    exit 1
+fi
+
 unzip -q original.vsix -d unpacked_ext
 
 # 4. 获取版本号

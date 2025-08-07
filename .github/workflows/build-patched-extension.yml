@@ -55,21 +55,67 @@ jobs:
           EXTENSION_NAME="augment"
           VSIX_URL="https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${PUBLISHER}/vsextensions/${EXTENSION_NAME}/latest/vspackage"
           echo "Downloading VSIX from: ${VSIX_URL}"
-          curl -L --compressed -o original.vsix "${VSIX_URL}"
+
+          # 使用更强的下载参数，处理重定向和压缩
+          curl -L \
+            --fail \
+            --retry 3 \
+            --retry-delay 5 \
+            --max-time 300 \
+            --user-agent "Mozilla/5.0 (compatible; GitHub-Actions)" \
+            --header "Accept: application/octet-stream, */*" \
+            --output original.vsix \
+            "${VSIX_URL}"
+
           echo "VSIX downloaded successfully."
-          # 验证文件类型
-          echo "Verifying downloaded file type:"
+
+          # 详细验证文件
+          echo "File information:"
+          ls -la original.vsix
+          echo "File type:"
           file original.vsix
+          echo "File size: $(stat -c%s original.vsix) bytes"
+
+          # 检查文件头部，确认是否为 ZIP 格式
+          echo "File header (hex):"
+          hexdump -C original.vsix | head -3
+
+          # 验证是否为有效的 ZIP 文件
+          if ! file original.vsix | grep -q "Zip\|ZIP"; then
+            echo "Error: Downloaded file is not a valid ZIP/VSIX file"
+            echo "File content preview:"
+            head -20 original.vsix
+            exit 1
+          fi
 
       # 步骤 5: 解包 VSIX 文件
       - name: Unpack VSIX
         run: |
           echo "Unpacking VSIX file..."
+
+          # 测试 ZIP 文件完整性
+          if ! unzip -t original.vsix > /dev/null 2>&1; then
+            echo "Error: VSIX file is corrupted or not a valid ZIP file"
+            echo "Attempting to diagnose the issue..."
+            echo "File size: $(stat -c%s original.vsix) bytes"
+            echo "File type: $(file original.vsix)"
+            echo "First 200 bytes of file:"
+            head -c 200 original.vsix | hexdump -C
+            exit 1
+          fi
+
+          # 解包文件
           unzip -q original.vsix -d unpacked_ext
           echo "VSIX unpacked successfully."
+
           # 查看解包后的结构
           echo "Unpacked structure:"
-          find unpacked_ext -name "*.js" -path "*/out/*" | head -10
+          find unpacked_ext -type f -name "*.json" | head -5
+          find unpacked_ext -type f -name "*.js" | head -10
+
+          # 查看目录结构
+          echo "Directory structure:"
+          find unpacked_ext -type d | head -10
 
       # 步骤 6: 从插件的 package.json 中获取版本号
       - name: Get extension version
