@@ -57,6 +57,22 @@ scripts\local-test.bat
 
 ## 自定义配置
 
+### 配置文件
+项目包含一个配置文件 `config/workflow-config.yml`，包含了所有可自定义的选项：
+
+```yaml
+# Augment Code 插件信息
+extension:
+  publisher: "augment"
+  name: "vscode-augment"
+
+# 构建配置
+build:
+  schedule: "0 8 * * *"  # 定时任务
+  python_version: "3.9"  # Python 版本
+  node_version: "20"     # Node.js 版本
+```
+
 ### 修改定时任务
 编辑 `.github/workflows/build-patched-extension.yml` 文件中的 cron 表达式：
 ```yaml
@@ -67,8 +83,8 @@ schedule:
 ### 修改插件信息
 如果需要处理其他插件，修改工作流中的变量：
 ```yaml
-PUBLISHER="augmentcode"
-EXTENSION_NAME="augment"
+PUBLISHER="augment"
+EXTENSION_NAME="vscode-augment"
 ```
 
 ## 故障排除
