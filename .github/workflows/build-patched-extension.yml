@@ -51,8 +51,8 @@ jobs:
       # 步骤 4: 下载最新的 Augment Code VSIX 插件
       - name: Download Latest VSIX
         run: |
-          PUBLISHER="augmentcode"
-          EXTENSION_NAME="augment"
+          PUBLISHER="augment"
+          EXTENSION_NAME="vscode-augment"
           VSIX_URL="https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${PUBLISHER}/vsextensions/${EXTENSION_NAME}/latest/vspackage"
           echo "Downloading VSIX from: ${VSIX_URL}"
 
