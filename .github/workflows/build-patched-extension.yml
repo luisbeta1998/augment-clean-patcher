@@ -76,18 +76,6 @@ jobs:
           file original.vsix
           echo "File size: $(stat -c%s original.vsix) bytes"
 
-          # 检查文件头部，确认是否为 ZIP 格式
-          echo "File header (hex):"
-          hexdump -C original.vsix | head -3
-
-          # 验证是否为有效的 ZIP 文件
-          if ! file original.vsix | grep -q "Zip\|ZIP"; then
-            echo "Error: Downloaded file is not a valid ZIP/VSIX file"
-            echo "File content preview:"
-            head -20 original.vsix
-            exit 1
-          fi
-
       # 步骤 5: 解包 VSIX 文件
       - name: Unpack VSIX
         run: |
