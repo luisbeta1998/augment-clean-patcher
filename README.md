@@ -76,6 +76,10 @@
 - **文件命名**: `augmentcode.augment-{版本号}-patched.vsix`
 - **版本检测**: 自动检测新版本，避免重复构建相同版本
 
+## 最新状态
+
+✅ **已完成最新版本 v0.524.1 的打包测试**
+
 ## 补丁内容
 
 本项目使用 [aug_cleaner](https://github.com/gmh5225/aug_cleaner) 工具对 Augment Code 插件进行处理，主要功能包括：
