@@ -1,0 +1,235 @@
+# .github/workflows/build-patched-extension.yml
+
+name: Build Patched Augment Code Extension with aug_cleaner
+
+on:
+  # 允许手动触发工作流
+  workflow_dispatch:
+
+  # 每天早上 8 点 (UTC) 自动运行，检查是否有新版本
+  schedule:
+    - cron: '0 8 * * *'
+
+  # 当工作流文件被更新时自动运行
+  push:
+    paths:
+      - '.github/workflows/**'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # 授予工作流向仓库创建 Release 的权限
+
+    steps:
+      # 步骤 1: 检出当前仓库代码
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整历史，包括所有 tags
+
+      # 步骤 2: 检出 aug_cleaner 工具代码
+      - name: Checkout aug_cleaner
+        uses: actions/checkout@v4
+        with:
+          repository: 'gmh5225/aug_cleaner'
+          path: 'aug_cleaner'
+
+      # 步骤 3: 设置 Python 环境 (aug_cleaner 要求 Python 3.6+)
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      # 步骤 3.1: 验证 Python 版本
+      - name: Verify Python version
+        run: |
+          python --version
+          python -c "import sys; print(f'Python version: {sys.version}')"
+          python -c "import sys; exit(0 if sys.version_info >= (3, 6) else 1)" && echo "✅ Python version meets aug_cleaner requirements (3.6+)"
+
+      # 步骤 4: 下载最新的 Augment Code VSIX 插件
+      - name: Download Latest VSIX
+        run: |
+          PUBLISHER="augmentcode"
+          EXTENSION_NAME="augment"
+          VSIX_URL="https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${PUBLISHER}/vsextensions/${EXTENSION_NAME}/latest/vspackage"
+          echo "Downloading VSIX from: ${VSIX_URL}"
+          curl -L --compressed -o original.vsix "${VSIX_URL}"
+          echo "VSIX downloaded successfully."
+          # 验证文件类型
+          echo "Verifying downloaded file type:"
+          file original.vsix
+
+      # 步骤 5: 解包 VSIX 文件
+      - name: Unpack VSIX
+        run: |
+          echo "Unpacking VSIX file..."
+          unzip -q original.vsix -d unpacked_ext
+          echo "VSIX unpacked successfully."
+          # 查看解包后的结构
+          echo "Unpacked structure:"
+          find unpacked_ext -name "*.js" -path "*/out/*" | head -10
+
+      # 步骤 6: 从插件的 package.json 中获取版本号
+      - name: Get extension version
+        id: get_version
+        run: |
+          # 查找 package.json 文件
+          PACKAGE_JSON=$(find unpacked_ext -name "package.json" -type f | head -1)
+          if [ -z "$PACKAGE_JSON" ]; then
+            echo "Error: package.json not found"
+            exit 1
+          fi
+          echo "Found package.json at: $PACKAGE_JSON"
+          
+          VERSION=$(jq -r .version "$PACKAGE_JSON")
+          if [ "$VERSION" = "null" ] || [ -z "$VERSION" ]; then
+            echo "Error: Could not extract version from package.json"
+            exit 1
+          fi
+          
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "Discovered extension version: ${VERSION}"
+
+      # 步骤 7: 检查版本是否已存在
+      - name: Check if version already exists
+        id: version_check
+        run: |
+          TAG_NAME="v${{ env.VERSION }}-patched"
+          if git tag -l | grep -q "^${TAG_NAME}$"; then
+            echo "Tag ${TAG_NAME} already exists, skipping build"
+            echo "skip_build=true" >> $GITHUB_OUTPUT
+          else
+            echo "New version ${{ env.VERSION }} detected, proceeding with build"
+            echo "skip_build=false" >> $GITHUB_OUTPUT
+          fi
+
+      # 步骤 8: 显示跳过构建的信息（仅在跳过时执行）
+      - name: Skip build notification
+        if: steps.version_check.outputs.skip_build == 'true'
+        run: |
+          echo "✅ Version ${{ env.VERSION }} already exists, skipping build"
+          echo "🔄 To rebuild: delete tag v${{ env.VERSION }}-patched and its release"
+
+      # 步骤 9: 使用 aug_cleaner 工具进行补丁（仅在需要构建时执行）
+      - name: Apply patch with aug_cleaner
+        if: steps.version_check.outputs.skip_build == 'false'
+        run: |
+          echo "Applying patch with aug_cleaner..."
+          
+          # 查找主要的 extension.js 文件
+          EXTENSION_JS=$(find unpacked_ext -name "extension.js" -path "*/out/*" | head -1)
+          if [ -z "$EXTENSION_JS" ]; then
+            echo "Error: extension.js not found in unpacked VSIX"
+            exit 1
+          fi
+          echo "Found extension.js at: $EXTENSION_JS"
+          
+          # 使用 aug_cleaner 工具进行补丁
+          python aug_cleaner/aug_cleaner.py "$EXTENSION_JS" "${EXTENSION_JS}.patched"
+          
+          # 替换原文件
+          mv "${EXTENSION_JS}.patched" "$EXTENSION_JS"
+          
+          echo "Patch applied successfully with aug_cleaner."
+
+      # 步骤 10: 设置 Node.js 环境（仅在需要构建时执行）
+      - name: Setup Node.js
+        if: steps.version_check.outputs.skip_build == 'false'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 步骤 11: 安装必要的工具（仅在需要构建时执行）
+      - name: Install dependencies
+        if: steps.version_check.outputs.skip_build == 'false'
+        run: |
+          npm install -g @vscode/vsce
+
+      # 步骤 12: 查找并准备插件目录
+      - name: Prepare extension directory
+        if: steps.version_check.outputs.skip_build == 'false'
+        run: |
+          # 查找包含 package.json 的目录
+          EXTENSION_DIR=$(find unpacked_ext -name "package.json" -type f -exec dirname {} \; | head -1)
+          if [ -z "$EXTENSION_DIR" ]; then
+            echo "Error: Extension directory not found"
+            exit 1
+          fi
+          echo "EXTENSION_DIR=${EXTENSION_DIR}" >> $GITHUB_ENV
+          echo "Extension directory: $EXTENSION_DIR"
+
+      # 步骤 13: 安装插件依赖并创建 .vscodeignore
+      - name: Install extension dependencies
+        if: steps.version_check.outputs.skip_build == 'false'
+        working-directory: ${{ env.EXTENSION_DIR }}
+        run: |
+          # 如果存在 package-lock.json 或 node_modules，先清理
+          rm -rf node_modules package-lock.json
+          
+          # 安装依赖（如果 package.json 中有依赖）
+          if [ -f package.json ] && jq -e '.dependencies // .devDependencies' package.json > /dev/null 2>&1; then
+            npm install --production
+          fi
+          
+          # 创建 .vscodeignore 文件
+          cat > .vscodeignore << EOF
+          node_modules/
+          .git/
+          .gitignore
+          *.md
+          .vscode/
+          test/
+          src/
+          tsconfig.json
+          webpack.config.js
+          EOF
+          echo "Dependencies installed and .vscodeignore created."
+
+      # 步骤 14: 重新打包成新的 VSIX 文件
+      - name: Repackage Patched VSIX
+        if: steps.version_check.outputs.skip_build == 'false'
+        run: |
+          PATCHED_VSIX_NAME="augmentcode.augment-${{ env.VERSION }}-patched.vsix"
+          echo "PATCHED_VSIX_NAME=${PATCHED_VSIX_NAME}" >> $GITHUB_ENV
+          
+          cd "${{ env.EXTENSION_DIR }}"
+          vsce package --out "../../${PATCHED_VSIX_NAME}"
+          
+          echo "Patched VSIX created: ${PATCHED_VSIX_NAME}"
+          ls -l "../../${PATCHED_VSIX_NAME}"
+
+      # 步骤 15: 创建 GitHub Release 并上传打包好的 VSIX
+      - name: Create GitHub Release
+        if: steps.version_check.outputs.skip_build == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ env.VERSION }}-patched"
+          name: "Patched Augment v${{ env.VERSION }}"
+          body: |
+            This is an automated build of the Augment extension, patched with the aug_cleaner tool.
+            
+            - Original Extension Version: **${{ env.VERSION }}**
+            - Patch Tool: aug_cleaner (https://github.com/gmh5225/aug_cleaner)
+            - Build Date: ${{ github.run_id }}
+            
+            ## Installation
+            1. Download the `.vsix` file below
+            2. Open VS Code
+            3. Go to Extensions view (Ctrl+Shift+X)
+            4. Click the "..." menu and select "Install from VSIX..."
+            5. Select the downloaded file
+            
+            ## What's Patched
+            This version has been processed by aug_cleaner to remove telemetry and tracking functionality.
+          files: "${{ env.PATCHED_VSIX_NAME }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 步骤 16: 清理临时文件
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -rf unpacked_ext original.vsix aug_cleaner
+          echo "Cleanup completed."

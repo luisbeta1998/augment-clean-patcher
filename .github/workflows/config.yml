@@ -1,0 +1,35 @@
+# 工作流配置文件
+# 这个文件包含了可以自定义的配置选项
+
+# Augment Code 插件信息
+extension:
+  publisher: "augmentcode"
+  name: "augment"
+  
+# aug_cleaner 工具配置
+aug_cleaner:
+  repository: "gmh5225/aug_cleaner"
+  branch: "main"
+  
+# 构建配置
+build:
+  # 定时任务 cron 表达式 (UTC 时间)
+  # 默认: 每天早上 8:00 UTC
+  schedule: "0 8 * * *"
+  
+  # Node.js 版本
+  node_version: "20"
+  
+  # Python 版本 (aug_cleaner 要求 Python 3.6+)
+  python_version: "3.9"
+  
+# 发布配置
+release:
+  # 标签前缀
+  tag_prefix: "v"
+  # 标签后缀
+  tag_suffix: "-patched"
+  
+  # VSIX 文件命名模式
+  # {publisher}.{name}-{version}-patched.vsix
+  vsix_name_pattern: "{publisher}.{name}-{version}-patched.vsix"

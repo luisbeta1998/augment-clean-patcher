@@ -1,0 +1,49 @@
+# 临时文件和构建产物
+*.vsix
+*.tmp
+*.temp
+unpacked_ext/
+original.vsix
+
+# 操作系统生成的文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE 和编辑器文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 日志文件
+*.log
+logs/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# 测试覆盖率
+coverage/
+.nyc_output/
+
+# 依赖目录
+aug_cleaner/
