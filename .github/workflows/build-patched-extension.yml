@@ -81,17 +81,6 @@ jobs:
         run: |
           echo "Unpacking VSIX file..."
 
-          # 测试 ZIP 文件完整性
-          if ! unzip -t original.vsix > /dev/null 2>&1; then
-            echo "Error: VSIX file is corrupted or not a valid ZIP file"
-            echo "Attempting to diagnose the issue..."
-            echo "File size: $(stat -c%s original.vsix) bytes"
-            echo "File type: $(file original.vsix)"
-            echo "First 200 bytes of file:"
-            head -c 200 original.vsix | hexdump -C
-            exit 1
-          fi
-
           # 解包文件
           unzip -q original.vsix -d unpacked_ext
           echo "VSIX unpacked successfully."
