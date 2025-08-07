@@ -5,12 +5,12 @@
 extension:
   publisher: "augment"
   name: "vscode-augment"
-  
+
 # aug_cleaner 工具配置
 aug_cleaner:
   repository: "gmh5225/aug_cleaner"
   branch: "main"
-  
+
 # 构建配置
 build:
   # 定时任务 cron 表达式 (UTC 时间)
@@ -22,7 +22,7 @@ build:
   
   # Python 版本 (aug_cleaner 要求 Python 3.6+)
   python_version: "3.9"
-  
+
 # 发布配置
 release:
   # 标签前缀
