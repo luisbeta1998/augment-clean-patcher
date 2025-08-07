@@ -80,7 +80,7 @@ jobs:
       - name: Unpack VSIX
         run: |
           echo "Unpacking VSIX file..."
-
+          
           # 解包文件
           unzip -q original.vsix -d unpacked_ext
           echo "VSIX unpacked successfully."
