@@ -26,8 +26,8 @@ git clone https://github.com/gmh5225/aug_cleaner.git
 
 # 2. 下载最新的 VSIX
 echo "📦 下载最新的 Augment Code VSIX..."
-PUBLISHER="augmentcode"
-EXTENSION_NAME="augment"
+PUBLISHER="augment"
+EXTENSION_NAME="vscode-augment"
 VSIX_URL="https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${PUBLISHER}/vsextensions/${EXTENSION_NAME}/latest/vspackage"
 
 echo "🌐 下载地址: ${VSIX_URL}"
@@ -139,7 +139,7 @@ tsconfig.json
 webpack.config.js
 EOF
     
-    PATCHED_VSIX_NAME="augmentcode.augment-${VERSION}-patched.vsix"
+    PATCHED_VSIX_NAME="augment.vscode-augment-${VERSION}-patched.vsix"
     vsce package --out "../${PATCHED_VSIX_NAME}"
     
     echo "✅ 补丁版本已创建: ${PATCHED_VSIX_NAME}"

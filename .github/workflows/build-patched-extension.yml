@@ -230,7 +230,7 @@ jobs:
       - name: Repackage Patched VSIX
         if: steps.version_check.outputs.skip_build == 'false'
         run: |
-          PATCHED_VSIX_NAME="augmentcode.augment-${{ env.VERSION }}-patched.vsix"
+          PATCHED_VSIX_NAME="augment.vscode-augment-${{ env.VERSION }}-patched.vsix"
           echo "PATCHED_VSIX_NAME=${PATCHED_VSIX_NAME}" >> $GITHUB_ENV
           
           cd "${{ env.EXTENSION_DIR }}"

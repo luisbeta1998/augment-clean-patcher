@@ -3,8 +3,8 @@
 
 # Augment Code 插件信息
 extension:
-  publisher: "augmentcode"
-  name: "augment"
+  publisher: "augment"
+  name: "vscode-augment"
   
 # aug_cleaner 工具配置
 aug_cleaner:

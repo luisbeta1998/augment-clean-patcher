@@ -23,8 +23,8 @@ if errorlevel 1 (
 
 REM 2. 下载最新的 VSIX
 echo 📦 下载最新的 Augment Code VSIX...
-set PUBLISHER=augmentcode
-set EXTENSION_NAME=augment
+set PUBLISHER=augment
+set EXTENSION_NAME=vscode-augment
 set VSIX_URL=https://marketplace.visualstudio.com/_apis/public/gallery/publishers/%PUBLISHER%/vsextensions/%EXTENSION_NAME%/latest/vspackage
 
 echo 🌐 下载地址: %VSIX_URL%
@@ -148,7 +148,7 @@ echo tsconfig.json
 echo webpack.config.js
 ) > .vscodeignore
 
-set PATCHED_VSIX_NAME=augmentcode.augment-%VERSION%-patched.vsix
+set PATCHED_VSIX_NAME=augment.vscode-augment-%VERSION%-patched.vsix
 vsce package --out "..\%PATCHED_VSIX_NAME%"
 if errorlevel 1 (
     echo ❌ 错误: 重新打包失败
